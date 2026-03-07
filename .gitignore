@@ -2,5 +2,5 @@ data/
 __pycache__/
 .ipynb_checkpoints/
 .env
-.anaconda_projects/
-.artifacts/
+anaconda_projects
+artifacts/
