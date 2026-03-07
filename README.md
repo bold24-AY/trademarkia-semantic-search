@@ -1,7 +1,6 @@
 # Semantic Search System with Fuzzy Clustering and Semantic Cache
 
 ![Python](https://img.shields.io/badge/python-3.10-blue)
-![FAISS](https://img.shields.io/badge/vector-search-faiss-green)
 ![FastAPI](https://img.shields.io/badge/api-fastapi-orange)
 
 ## Overview
