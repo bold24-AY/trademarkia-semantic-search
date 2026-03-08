@@ -385,6 +385,24 @@ http://127.0.0.1:8000/docs
 
 ---
 
+### 🐳 Running with Docker (Recommended)
+
+**1️⃣ Read your README** (You are here!)
+
+**2️⃣ Run the Docker container:**
+```bash
+docker build -t semantic-search .
+docker run -p 8000:8000 semantic-search
+```
+
+**3️⃣ Open interactive API documentation:**
+Navigate to [http://localhost:8000/docs](http://localhost:8000/docs) in your browser.
+
+**4️⃣ Test the `/query` endpoint**
+Your project is fully ready for that! 🎉
+
+---
+
 # Future Improvements
 
 Potential extensions include:
