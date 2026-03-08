@@ -2,21 +2,26 @@
 
 ![Python](https://img.shields.io/badge/python-3.10-blue)
 ![FastAPI](https://img.shields.io/badge/api-fastapi-orange)
+![FAISS](https://img.shields.io/badge/vector-search-faiss-green)
+![SentenceTransformers](https://img.shields.io/badge/embeddings-sentence--transformers-purple)
 
-## Overview
+---
 
-This project implements a **semantic search system** for the **20 Newsgroups dataset** using modern NLP techniques.
-Instead of traditional keyword matching, the system uses **transformer-based embeddings** and **vector similarity search** to retrieve semantically related documents.
+# Overview
 
-In addition to semantic search, the project explores **unsupervised topic discovery using fuzzy clustering** and implements a **semantic cache layer** to reuse results for similar queries.
+This project implements a **semantic search system** for the **20 Newsgroups dataset** using modern Natural Language Processing techniques.
 
-The final system exposes these capabilities through a **FastAPI service**, enabling real-time query handling.
+Unlike traditional keyword search systems, this project uses **transformer-based sentence embeddings** and **vector similarity search** to retrieve documents that are **semantically related to a query**.
+
+The system also explores **unsupervised topic discovery using fuzzy clustering** and introduces a **semantic cache layer** that allows the system to reuse results when similar queries appear.
+
+The final system is deployed as a **FastAPI service**, enabling real-time query processing through a REST API.
 
 ---
 
 # System Architecture
 
-The system follows a modular architecture designed for clarity, scalability, and experimentation.
+The system is designed with a **modular architecture** that separates data processing, retrieval logic, and API services.
 
 ## System Architecture Diagram
 
@@ -35,28 +40,46 @@ D -->|Cache Miss| F[FAISS Vector Search]
 
 F --> G[Retrieve Top Documents]
 
-G --> H[Store Result in Cache]
+G --> H[Snippet Extraction]
 
-H --> I[Return Results to User]
+H --> I[Store Result in Cache]
+
+I --> J[Return Results to User]
 ```
 
-The system follows a layered architecture.
+---
 
-User queries are first processed through a FastAPI service, which converts the input text into a semantic embedding using a SentenceTransformer model.
+# Query Processing Pipeline
 
-Before performing a search, the system checks a semantic cache that stores embeddings of previously processed queries. If a semantically similar query is found, the cached results are returned immediately.
+The full query execution pipeline is:
 
-If no match is found, the query embedding is passed to a FAISS vector index that performs similarity search against all document embeddings.
-
-The most similar documents are returned as results and also stored in the semantic cache for faster responses to future queries.
+```
+User Query
+↓
+SentenceTransformer embedding
+↓
+Semantic cache lookup
+↓
+If cache hit → return cached result
+↓
+If cache miss → FAISS vector search
+↓
+Retrieve top documents
+↓
+Extract most relevant snippet
+↓
+Store result in cache
+↓
+Return response
+```
 
 ---
 
 # Dataset
 
-This project uses the **20 Newsgroups dataset**, a widely used corpus for text classification and clustering.
+This project uses the **20 Newsgroups dataset**, a widely used benchmark corpus for text classification and clustering research.
 
-The dataset contains approximately **20,000 Usenet posts** organized into **20 topic categories**, including:
+The dataset contains approximately **20,000 Usenet messages** divided into **20 topic categories**, including:
 
 * sci.space
 * rec.sport.baseball
@@ -65,15 +88,20 @@ The dataset contains approximately **20,000 Usenet posts** organized into **20 t
 * alt.atheism
 * and others
 
-Each document contains typical email-style formatting such as headers, quotes, and signatures.
+Each message contains typical Usenet formatting such as:
 
-During preprocessing, headers, footers, and quoted replies are removed to ensure embeddings capture the **actual semantic content** of the messages.
+* headers
+* email addresses
+* quoted replies
+* signatures
+
+During preprocessing, these artifacts are removed to ensure embeddings capture the **actual semantic content of the message body**.
 
 ---
 
 # Embedding Strategy
 
-To represent documents in a semantic vector space, the system uses the transformer model:
+To convert text into semantic vectors, the system uses the transformer model:
 
 **SentenceTransformer — `all-MiniLM-L6-v2`**
 
@@ -81,26 +109,24 @@ Reasons for choosing this model:
 
 * Lightweight and efficient
 * Produces **384-dimensional embeddings**
-* Strong performance on semantic similarity tasks
-* Widely used for semantic search systems
+* Strong performance on semantic similarity benchmarks
+* Commonly used in semantic search systems
 
-Each document is converted into a dense embedding vector.
-
-Example representation:
+Each document is represented as:
 
 ```
-Document → 384-dimensional vector
+Document → 384 dimensional embedding vector
 ```
 
-These vectors enable **semantic comparison between texts using cosine similarity**.
+These embeddings allow documents and queries to be compared using **cosine similarity**.
 
 ---
 
 # Vector Database (FAISS)
 
-To perform fast similarity search over the embedding vectors, the project uses **FAISS (Facebook AI Similarity Search)**.
+To perform fast similarity search across thousands of embeddings, the system uses:
 
-FAISS enables efficient **nearest neighbor search** in high-dimensional spaces.
+**FAISS — Facebook AI Similarity Search**
 
 Index type used:
 
@@ -108,60 +134,61 @@ Index type used:
 IndexFlatL2
 ```
 
-This index computes Euclidean distance between query vectors and document embeddings to retrieve the most relevant documents.
+This index computes the Euclidean distance between query embeddings and document embeddings to retrieve the most similar documents.
 
-Advantages:
+Advantages of FAISS:
 
-* Extremely fast
-* Optimized for large vector datasets
-* Widely used in production ML systems
+* extremely fast nearest-neighbor search
+* optimized for high-dimensional vectors
+* widely used in production ML systems
 
 ---
 
 # Fuzzy Clustering (Topic Discovery)
 
-To explore the structure of the embedding space, the project applies **Gaussian Mixture Model (GMM)** clustering.
+To explore semantic structure in the embedding space, the project applies **Gaussian Mixture Model (GMM)** clustering.
 
-Unlike hard clustering methods such as K-Means, GMM produces **probabilistic cluster memberships**.
+Unlike hard clustering methods such as **K-Means**, GMM assigns **probabilities of belonging to each cluster**.
 
-Example output:
+Example:
 
 ```
-Document A:
+Document A
+
 Cluster 3 → 0.71
 Cluster 7 → 0.22
 Cluster 12 → 0.07
 ```
 
-This allows documents to belong partially to multiple clusters, reflecting the reality that many discussions involve **multiple topics**.
+This reflects the fact that many documents discuss **multiple topics simultaneously**.
 
-The number of clusters was selected using the **Bayesian Information Criterion (BIC)**, which balances model complexity and goodness of fit.
+The optimal number of clusters was selected using the **Bayesian Information Criterion (BIC)**, which balances model complexity with data likelihood.
 
 ---
 
 # Cluster Analysis
 
-Several analyses were conducted to validate clustering behavior:
+Several experiments were conducted to understand the clustering behavior.
 
 ### Cluster Probability Analysis
 
-The model assigns very high probability to a dominant cluster for most documents, indicating strong semantic separation in the embedding space.
+Most documents show a **dominant cluster probability above 0.7**, indicating strong semantic grouping.
 
 ### t-SNE Visualization
 
-To visualize the high-dimensional embeddings, **t-Distributed Stochastic Neighbor Embedding (t-SNE)** was applied to a sample of documents.
+A **t-SNE projection** was used to visualize the high-dimensional embedding space.
 
-The resulting 2D projection shows clearly separated regions corresponding to different semantic topics.
+The visualization reveals **clear separation between topic groups**, confirming that transformer embeddings capture meaningful semantic structure.
 
 ### Cluster Size Distribution
 
-Cluster sizes range between approximately **700 and 1400 documents**, indicating that the model captures a diverse set of topics rather than collapsing documents into a few dominant clusters.
+Cluster sizes range approximately between **700 and 1400 documents**, suggesting balanced semantic grouping across topics.
 
 ---
 
 # Semantic Cache Design
 
-Traditional caching systems rely on **exact query matching**, which fails when users ask the same question in different ways.
+Traditional caching relies on **exact query matches**, which fails when users ask similar questions using different wording.
 
 Example:
 
@@ -170,26 +197,28 @@ Example:
 "Tell me about NASA space programs"
 ```
 
-Although these queries are semantically similar, a standard cache would treat them as different.
+Although these queries are semantically similar, a traditional cache would treat them as different.
 
-This project implements a **semantic cache** using embedding similarity.
+This system implements a **semantic cache** using embedding similarity.
 
-## Cache Workflow
+### Cache Workflow
 
-1. Convert the query to an embedding
-2. Compare the embedding with cached query embeddings
+1. Convert query to embedding
+2. Compare with cached query embeddings
 3. Compute cosine similarity
-4. If similarity exceeds a threshold (0.85), reuse cached results
+4. If similarity > **0.85**, reuse cached result
 
-This allows the system to reuse results for **semantically similar queries**, reducing redundant computation.
+This significantly reduces redundant search computation.
 
 ---
 
 # API Service
 
-The system is exposed through a **FastAPI application**.
+The semantic search system is exposed through a **FastAPI application**.
 
-### Endpoint: Query Search
+---
+
+## Endpoint: Semantic Query
 
 ```
 POST /query
@@ -209,21 +238,29 @@ Example response:
 {
   "query": "nasa space mission",
   "cache_hit": false,
+  "matched_query": null,
+  "similarity_score": null,
+  "dominant_cluster": 3,
   "result": [
-    "Archive-name: space/addresses..."
+    "NASA (The National Aeronautics and Space Administration) is the civilian space agency of the United States federal government."
   ]
 }
 ```
 
-If the same or a similar query is submitted again:
+Response fields:
 
-```
-"cache_hit": true
-```
+| Field            | Description                               |
+| ---------------- | ----------------------------------------- |
+| query            | Original query text                       |
+| cache_hit        | Indicates whether results came from cache |
+| matched_query    | Cached query that matched                 |
+| similarity_score | Cosine similarity with cached query       |
+| dominant_cluster | Cluster predicted by GMM                  |
+| result           | Top retrieved document snippets           |
 
 ---
 
-### Endpoint: Cache Statistics
+## Endpoint: Cache Statistics
 
 ```
 GET /cache/stats
@@ -231,20 +268,20 @@ GET /cache/stats
 
 Returns:
 
-* total cached entries
+* number of cache entries
 * cache hits
 * cache misses
 * hit rate
 
 ---
 
-### Endpoint: Clear Cache
+## Endpoint: Clear Cache
 
 ```
 DELETE /cache
 ```
 
-Removes all cached entries.
+Clears all cached entries.
 
 ---
 
@@ -269,6 +306,7 @@ notebooks/
 data/
     20_newsgroups/
     mini_newsgroups/
+    gmm_model.pkl
 
 requirements.txt
 README.md
@@ -284,7 +322,7 @@ README.md
 pip install -r requirements.txt
 ```
 
-### Generate embeddings
+### Generate embeddings and clustering model
 
 Run the notebook:
 
@@ -297,15 +335,18 @@ This will generate:
 ```
 data/embeddings.npy
 data/documents.txt
+data/gmm_model.pkl
 ```
 
-### Start API
+---
+
+### Start API server
 
 ```
 uvicorn api.main:app --reload
 ```
 
-Open interactive documentation:
+Open interactive API documentation:
 
 ```
 http://127.0.0.1:8000/docs
@@ -315,26 +356,26 @@ http://127.0.0.1:8000/docs
 
 # Future Improvements
 
-Several improvements could further enhance the system:
+Potential extensions include:
 
-* Cluster-aware cache indexing
-* Approximate FAISS indices for larger datasets
-* Automatic cache eviction policies
-* Query routing using cluster predictions
-* Hybrid search combining semantic and keyword retrieval
+* cluster-aware semantic search
+* approximate FAISS indices for larger datasets
+* automatic cache eviction strategies
+* hybrid search combining semantic and keyword retrieval
+* distributed vector search infrastructure
 
 ---
 
 # Conclusion
 
-This project demonstrates how modern NLP techniques can be combined to build a **practical semantic search system**.
+This project demonstrates how modern NLP techniques can be combined to build an **intelligent semantic retrieval system**.
 
 By integrating:
 
 * transformer embeddings
-* vector similarity search
+* FAISS vector similarity search
 * fuzzy clustering
 * semantic caching
-* API deployment
+* REST API deployment
 
-the system provides a scalable architecture for intelligent document retrieval.
+the system provides a **scalable architecture for semantic document search**.
