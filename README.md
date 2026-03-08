@@ -292,9 +292,15 @@ Here is a step-by-step demonstration of the API and semantic cache in action:
 Running an initial semantic query. This performs a full FAISS vector search.
 ![Query 1](assets/query1.png)
 
+**Response 1:**
+![Response 1](assets/response1.png)
+
 ### 2. Similar Query (Cache Hit)
 Running a semantically similar query. The system detects the similarity and returns a cache hit.
 ![Query 2](assets/query2.png)
+
+**Response 2:**
+![Response 2](assets/response2.png)
 
 ### 3. Cache Statistics
 Checking the cache stats gives us the current hit rate and number of successful cache hits.
