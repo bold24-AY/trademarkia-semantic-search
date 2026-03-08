@@ -1,6 +1,12 @@
-data/
 __pycache__/
+*.pyc
+
 .ipynb_checkpoints/
+
 .env
-anaconda_projects
+
+anaconda_projects/
 artifacts/
+
+data/20_newsgroups/
+data/mini_newsgroups/
