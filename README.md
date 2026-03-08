@@ -2,7 +2,6 @@
 
 ![Python](https://img.shields.io/badge/python-3.10-blue)
 ![FastAPI](https://img.shields.io/badge/api-fastapi-orange)
-![FAISS](https://img.shields.io/badge/vector-search-faiss-green)
 ![SentenceTransformers](https://img.shields.io/badge/embeddings-sentence--transformers-purple)
 
 ---
@@ -282,6 +281,32 @@ DELETE /cache
 ```
 
 Clears all cached entries.
+
+---
+
+# API Usage Demonstration
+
+Here is a step-by-step demonstration of the API and semantic cache in action:
+
+### 1. First Query (Cache Miss)
+Running an initial semantic query. This performs a full FAISS vector search.
+![Query 1](assets/query1.png)
+
+### 2. Similar Query (Cache Hit)
+Running a semantically similar query. The system detects the similarity and returns a cache hit.
+![Query 2](assets/query2.png)
+
+### 3. Cache Statistics
+Checking the cache stats gives us the current hit rate and number of successful cache hits.
+![Cache Stats 1](assets/getcachestats1.png)
+
+### 4. Clear Cache
+Deleting all records to clear the semantic cache.
+![Delete Cache](assets/delete.png)
+
+### 5. Verify Cache Clear
+Checking the cache stats again shows that the cache is now empty (0 hits and 0 entries).
+![Cache Stats 2](assets/getcachestats2.png)
 
 ---
 
