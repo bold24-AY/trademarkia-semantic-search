@@ -205,7 +205,7 @@ This system implements a **semantic cache** using embedding similarity.
 1. Convert query to embedding
 2. Compare with cached query embeddings
 3. Compute cosine similarity
-4. If similarity > **0.85**, reuse cached result
+4. If similarity > **0.70**, reuse cached result
 
 This significantly reduces redundant search computation.
 

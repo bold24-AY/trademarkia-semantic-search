@@ -2,7 +2,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 class SemanticCache:
 
-    def __init__(self, threshold=0.85):
+    def __init__(self, threshold=0.70):
 
         self.entries = []
         self.threshold = threshold
